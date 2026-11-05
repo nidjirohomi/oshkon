@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  password String
+  role String @default("GUEST")
+  bookings Booking[]
+}
+model Restaurant {
+  id String @id @default(cuid())
+  name String
+  description String
+  address String
+  imageUrl String
+  cuisine String
+  rating Float
+  tables Table[]
+  categories MenuCategory[]
+  bookings Booking[]
+}
+model Table {
+  id String @id @default(cuid())
+  restaurantId String
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  number Int
+  capacity Int
+  x Int
+  y Int
+  shape String
+  bookings Booking[]
+}
+model MenuCategory {
+  id String @id @default(cuid())
+  restaurantId String
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name String
+  items MenuItem[]
+}
+model MenuItem {
+  id String @id @default(cuid())
+  categoryId String
+  category MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name String
+  description String
+  price Int
+  imageUrl String
+  bookingItems BookingItem[]
+}
+model Booking {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  restaurantId String
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  tableId String
+  table Table @relation(fields: [tableId], references: [id])
+  date String
+  time String
+  guests Int
+  status String @default("CONFIRMED")
+  totalPrice Int
+  items BookingItem[]
+  @@index([restaurantId, tableId, date, time])
+}
+model BookingItem {
+  id String @id @default(cuid())
+  bookingId String
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity Int
+  comment String?
+}
